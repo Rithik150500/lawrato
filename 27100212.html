@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Post Generator - AI-Powered Content Creation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .loading-steps {
+            margin-top: 15px;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .result-section.active {
+            display: block;
+        }
+
+        .post-type-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .post-type-badge.single {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .post-type-badge.carousel {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .image-container {
+            position: relative;
+            background: #f5f5f5;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .carousel-wrapper {
+            position: relative;
+        }
+
+        .carousel-images {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%; /* 1:1 aspect ratio */
+        }
+
+        .carousel-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .carousel-image.active {
+            opacity: 1;
+        }
+
+        .carousel-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .single-image img {
+            width: 100%;
+            display: block;
+            border-radius: 15px;
+        }
+
+        .carousel-controls {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .carousel-nav {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .carousel-nav:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .carousel-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .carousel-indicator.active {
+            background: white;
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        .carousel-counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .content-container {
+            background: white;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .plan-content,
+        .caption-content {
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            color: #444;
+        }
+
+        .caption-content {
+            border-left-color: #764ba2;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .copy-btn {
+            background: #4caf50;
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .new-post-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .new-post-btn:hover {
+            background: #0b7dda;
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            display: none;
+            padding: 15px;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .success-message {
+            padding: 15px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .image-prompt-tag {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 6px;
+            font-style: italic;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Instagram Post Generator</h1>
+            <p>AI-Powered Content Creation with GPT-5 & GPT Image 1</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Input Form -->
+            <div class="form-section" id="formSection">
+                <h2 style="margin-bottom: 20px; color: #333;">Create Your Instagram Post</h2>
+                <form id="postForm">
+                    <div class="form-group">
+                        <label for="headline">📰 News Headline</label>
+                        <input 
+                            type="text" 
+                            id="headline" 
+                            name="headline" 
+                            placeholder="Enter the news headline..."
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content">📝 News Content</label>
+                        <textarea 
+                            id="content" 
+                            name="content" 
+                            placeholder="Paste the full news content here..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newsLink">🔗 News Link</label>
+                        <input 
+                            type="url" 
+                            id="newsLink" 
+                            name="newsLink" 
+                            placeholder="https://example.com/news-article"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="generate-btn" id="generateBtn">
+                        ✨ Generate Instagram Post
+                    </button>
+                </form>
+
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loadingSection">
+                <div class="spinner"></div>
+                <div class="loading-text">Creating your Instagram post...</div>
+                <div class="loading-steps" id="loadingSteps">
+                    Planning the perfect post with AI...
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="result-section" id="resultSection">
+                <div id="postTypeBadge"></div>
+                
+                <div class="result-grid">
+                    <!-- Image Display -->
+                    <div class="image-container">
+                        <div id="imageDisplay"></div>
+                    </div>
+
+                    <!-- Caption and Plan -->
+                    <div class="content-container">
+                        <div style="margin-bottom: 30px;">
+                            <h3 class="section-title">📋 Strategic Plan</h3>
+                            <div class="plan-content" id="planContent"></div>
+                        </div>
+
+                        <div>
+                            <h3 class="section-title">✍️ Instagram Caption</h3>
+                            <div class="caption-content" id="captionContent"></div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="action-btn copy-btn" onclick="copyCaption()">
+                                📋 Copy Caption
+                            </button>
+                            <button class="action-btn new-post-btn" onclick="createNewPost()">
+                                ➕ New Post
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Powered by OpenAI GPT-5 Responses API & GPT Image 1
+        </div>
+    </div>
+
+    <script>
+        let currentCarouselIndex = 0;
+        let currentImages = [];
+        let currentCaption = '';
+
+        // Form submission handler
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const headline = document.getElementById('headline').value;
+            const content = document.getElementById('content').value;
+            const newsLink = document.getElementById('newsLink').value;
+
+            // Hide error and result sections
+            document.getElementById('errorMessage').classList.remove('active');
+            document.getElementById('resultSection').classList.remove('active');
+            
+            // Show loading
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('loadingSection').classList.add('active');
+            
+            try {
+                // Update loading messages
+                updateLoadingMessage('Planning your Instagram post strategy...');
+                
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        headline: headline,
+                        content: content,
+                        news_link: newsLink
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Display results
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').textContent = 
+                    'Error generating post: ' + error.message;
+                document.getElementById('errorMessage').classList.add('active');
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('loadingSection').classList.remove('active');
+            }
+        });
+
+        function updateLoadingMessage(message) {
+            document.getElementById('loadingSteps').textContent = message;
+        }
+
+        function displayResults(data) {
+            currentImages = data.images;
+            currentCaption = data.caption;
+            currentCarouselIndex = 0;
+
+            // Display post type badge
+            const badge = document.getElementById('postTypeBadge');
+            badge.className = `post-type-badge ${data.post_type.toLowerCase()}`;
+            badge.textContent = data.post_type === 'SINGLE' ? 
+                '🖼️ Single Image Post' : 
+                `🎠 Carousel Post (${data.images.length} slides)`;
+
+            // Display images
+            const imageDisplay = document.getElementById('imageDisplay');
+            
+            if (data.post_type === 'SINGLE') {
+                // Single image display
+                imageDisplay.innerHTML = `
+                    <div class="single-image">
+                        <img src="${data.images[0].url}" alt="Generated Instagram Post">
+                        <div class="image-prompt-tag">
+                            💡 ${data.images[0].prompt}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Carousel display
+                const imagesHtml = data.images.map((img, index) => `
+                    <div class="carousel-image ${index === 0 ? 'active' : ''}" data-index="${index}">
+                        <img src="${img.url}" alt="Carousel slide ${index + 1}">
+                    </div>
+                `).join('');
+
+                const indicatorsHtml = data.images.map((_, index) => `
+                    <div class="carousel-indicator ${index === 0 ? 'active' : ''}" 
+                         onclick="goToSlide(${index})"></div>
+                `).join('');
+
+                imageDisplay.innerHTML = `
+                    <div class="carousel-wrapper">
+                        <div class="carousel-counter">
+                            <span id="currentSlide">1</span> / ${data.images.length}
+                        </div>
+                        <div class="carousel-indicators">
+                            ${indicatorsHtml}
+                        </div>
+                        <div class="carousel-images">
+                            ${imagesHtml}
+                        </div>
+                        <div class="carousel-controls">
+                            <button class="carousel-nav" onclick="prevSlide()">◀</button>
+                            <button class="carousel-nav" onclick="nextSlide()">▶</button>
+                        </div>
+                        <div class="image-prompt-tag" id="currentPrompt">
+                            💡 ${data.images[0].prompt}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Display plan and caption
+            document.getElementById('planContent').textContent = data.plan;
+            document.getElementById('captionContent').textContent = data.caption;
+
+            // Show results section
+            document.getElementById('formSection').style.display = 'none';
+            document.getElementById('resultSection').classList.add('active');
+        }
+
+        function nextSlide() {
+            currentCarouselIndex = (currentCarouselIndex + 1) % currentImages.length;
+            updateCarousel();
+        }
+
+        function prevSlide() {
+            currentCarouselIndex = (currentCarouselIndex - 1 + currentImages.length) % currentImages.length;
+            updateCarousel();
+        }
+
+        function goToSlide(index) {
+            currentCarouselIndex = index;
+            updateCarousel();
+        }
+
+        function updateCarousel() {
+            // Update images
+            document.querySelectorAll('.carousel-image').forEach((img, index) => {
+                img.classList.toggle('active', index === currentCarouselIndex);
+            });
+
+            // Update indicators
+            document.querySelectorAll('.carousel-indicator').forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === currentCarouselIndex);
+            });
+
+            // Update counter
+            document.getElementById('currentSlide').textContent = currentCarouselIndex + 1;
+
+            // Update prompt
+            document.getElementById('currentPrompt').innerHTML = 
+                `💡 ${currentImages[currentCarouselIndex].prompt}`;
+        }
+
+        function copyCaption() {
+            navigator.clipboard.writeText(currentCaption).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                btn.style.background = '#66bb6a';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#4caf50';
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy caption');
+                console.error('Copy failed:', err);
+            });
+        }
+
+        function createNewPost() {
+            document.getElementById('formSection').style.display = 'block';
+            document.getElementById('resultSection').classList.remove('active');
+            document.getElementById('postForm').reset();
+            currentImages = [];
+            currentCaption = '';
+            currentCarouselIndex = 0;
+        }
+
+        // Keyboard navigation for carousel
+        document.addEventListener('keydown', (e) => {
+            if (currentImages.length > 1 && 
+                document.getElementById('resultSection').classList.contains('active')) {
+                if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                } else if (e.key === 'ArrowRight') {
+                    nextSlide();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
