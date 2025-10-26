@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Legal Research Assistant</title>
+    <style>
+        /* Basic styling to make the interface clean and professional */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading spinner that appears while research is in progress */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Results section styling */
+        .results {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .results h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .results-content {
+            color: #444;
+            line-height: 1.8;
+            font-size: 15px;
+            word-wrap: break-word;
+        }
+
+        /* Styling for rendered Markdown content */
+        .results-content h1 {
+            font-size: 24px;
+            color: #333;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .results-content h2 {
+            font-size: 20px;
+            color: #444;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .results-content h3 {
+            font-size: 18px;
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .results-content p {
+            margin-bottom: 15px;
+            line-height: 1.7;
+        }
+
+        .results-content ul, .results-content ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        .results-content li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .results-content strong {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .results-content em {
+            font-style: italic;
+            color: #555;
+        }
+
+        .results-content code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .results-content pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .results-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+            margin: 15px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .results-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .results-content table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .results-content table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .results-content table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .results-content hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 25px 0;
+        }
+
+        .error {
+            background: #fee;
+            border-left-color: #d32f2f;
+        }
+
+        .error h2 {
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ NOWLEZ</h1>
+            <p>RESEARCH, REDEFINED</p>
+        </div>
+
+        <div class="content">
+            <!-- Form where users enter their legal questions -->
+            <form id="researchForm">
+                <div class="form-group">
+                    <label for="question">Enter your legal research question(s):</label>
+                    <textarea 
+                        id="question" 
+                        name="question" 
+                        rows="6" 
+                        placeholder="Example: Can husband get custody of infant child after divorce?&#10;&#10;You can enter multiple questions, one per line."
+                        required
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    Research
+                </button>
+            </form>
+
+            <!-- Loading indicator that shows while the backend is processing -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p class="loading-text">Researching relevant case law... This may take a minute.</p>
+            </div>
+
+            <!-- Results section that displays the research findings -->
+            <div class="results" id="results">
+                <h2>Research Results</h2>
+                <div class="results-content" id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marked.js library for parsing Markdown to HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <script>
+        // JavaScript to handle form submission and display results
+        const form = document.getElementById('researchForm');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const resultsContent = document.getElementById('resultsContent');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Configure marked.js options for better rendering
+        marked.setOptions({
+            breaks: true,  // Convert line breaks to <br> tags
+            gfm: true,     // Enable GitHub Flavored Markdown (supports tables)
+            headerIds: false,  // Don't add IDs to headers
+            mangle: false  // Don't escape email addresses
+        });
+
+        form.addEventListener('submit', async (e) => {
+            // Prevent the default form submission behavior
+            e.preventDefault();
+
+            // Get the question text from the textarea
+            const question = document.getElementById('question').value;
+
+            // Show loading state and hide any previous results
+            loading.classList.add('active');
+            results.classList.remove('active');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Researching...';
+
+            try {
+                // Send the question to our Flask backend
+                const response = await fetch('/research', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                const data = await response.json();
+
+                // Hide loading indicator
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Research Case Law';
+
+                // Display the results
+                results.classList.add('active');
+                
+                if (data.error) {
+                    // If there was an error, show it in red
+                    results.classList.add('error');
+                    resultsContent.textContent = data.error;
+                } else {
+                    // Parse the Markdown and display as formatted HTML
+                    results.classList.remove('error');
+                    // Convert Markdown to HTML using marked.js
+                    const htmlContent = marked.parse(data.result);
+                    // Set the HTML content (this will render all the formatting)
+                    resultsContent.innerHTML = htmlContent;
+                }
+
+            } catch (error) {
+                // Handle any network or other errors
+                loading.classList.remove('active');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Research Case Law';
+                
+                results.classList.add('active', 'error');
+                resultsContent.textContent = 'An error occurred while processing your request. Please try again.';
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
