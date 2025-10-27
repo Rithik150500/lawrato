@@ -143,12 +143,6 @@ def make_followup_call(user_prompt, first_message, followup_prompt):
         temperature=1,
         system="STYLE: CONCISE, EXPLANATORY, FORMAL. You are a legal research assistant specializing in Indian case law",
         messages=messages,
-        tools=[
-            {
-                "name": "web_search",
-                "type": "web_search_20250305"
-            }
-        ],
         thinking={
             "type": "enabled",
             "budget_tokens": 16000
@@ -252,6 +246,7 @@ if __name__ == '__main__':
     
 
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
