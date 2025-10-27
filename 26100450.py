@@ -141,7 +141,7 @@ def make_followup_call(user_prompt, first_message, followup_prompt):
         model="claude-haiku-4-5-20251001",
         max_tokens=20000,
         temperature=1,
-        system="STYLE: CONCISE, EXPLANATORY, FORMAL. You are a legal research assistant specializing in Indian case law",
+        system="STYLE: CONCISE, EXPLANATORY, FORMAL. You are a legal research assistant specializing in Indian case law. Ensure that all case citations you provide are accurate and complete.",
         messages=messages,
         thinking={
             "type": "enabled",
@@ -246,6 +246,7 @@ if __name__ == '__main__':
     
 
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
 
 
