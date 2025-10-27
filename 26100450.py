@@ -141,7 +141,7 @@ def make_followup_call(user_prompt, first_message, followup_prompt):
         model="claude-haiku-4-5-20251001",
         max_tokens=20000,
         temperature=1,
-        system="STYLE: CONCISE, EXPLANATORY. CITE CASE LAWS",
+        system="STYLE: CONCISE, EXPLANATORY. You are a legal assistant specializing in Indian case law",
         messages=messages,
         thinking={
             "type": "enabled",
@@ -244,4 +244,5 @@ if __name__ == '__main__':
     print("\nStarting server on http://localhost:5000")
     print("Press Ctrl+C to stop the server\n")
     
+
     app.run(debug=True, host='0.0.0.0', port=5000)
